@@ -1,6 +1,7 @@
 library(tidyverse)
 library(broom)
 library(treemap)
+library(scales)
 
 #load data
 loans <- read_csv('kiva_loans.csv')
@@ -81,5 +82,29 @@ treemap(loans_funded_by_country,
         index = 'country',
         vSize = 'ammount',
         title = 'Funded amount')
+
+
+
+#boxplots of different sectors, scaled 
+loans %>%
+  mutate(fill = factor(sector)) %>%
+  ggplot(aes(x = sector, y = funded_amount, fill = sector)) +
+  scale_y_log10(breaks = trans_breaks(trans = 'log10', inv = function(x) 10^x),
+                labels = trans_format(trans = 'log10', format = math_format(10^.x))) +
+  geom_boxplot() +
+  labs(x = 'Sector type',
+       y = 'Funded Amount',
+       title = 'Distribution of funded amount') +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  
+  
+  
+  
+  
+  
+  
+
 
 
