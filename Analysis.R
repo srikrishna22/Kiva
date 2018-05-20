@@ -2,6 +2,7 @@ library(tidyverse)
 library(broom)
 library(treemap)
 library(scales)
+library(leaflet)
 
 #load data
 loans <- read_csv('kiva_loans.csv')
@@ -97,14 +98,52 @@ loans %>%
        title = 'Distribution of funded amount') +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#genders 
+
+loans %>%
+  filter(!is.na(borrower_genders)) %>%
+  mutate(gender = if_else(str_detect(borrower_genders, 'female'), 'female', 'male')) %>%
+  group_by(gender) %>%
+  summarise(count = n()) %>%
   
+  ggplot(aes(x = gender, y = count)) +
+    geom_col(fill = 'green', alpha = 0.5) +
+    geom_text(aes(x = gender, y = 1, label = count, hjust = 0, vjust =.5, size = 4)) +
+    labs(x = 'Gender',
+         y = 'Count',
+         title = 'Gender Counts') +
+  coord_flip()
+
+
+#length of loans
+
+loans %>%
+  filter(!is.na(term_in_months)) %>%
+  group_by(term_in_months) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>%
+  mutate(term_in_months = reorder(term_in_months, count)) %>%
+  head(10) %>%
   
+  ggplot(aes(x=term_in_months, y=count)) +
+  geom_bar(stat = 'identity', color = 'white', fill = 'blue', alpha = 0.5 ) +
+  geom_text(aes(x=term_in_months, y = 1, label = paste0("(",count,")",sep="")), 
+            hjust=0, vjust=.5, size = 4, colour = 'black',
+            fontface = 'bold') +
+  labs(x = 'Term in Months', 
+       y = 'Count', 
+       title = 'Term in Months and Count') +
+  coord_flip()
   
-  
-  
-  
-  
-  
+#leaflet for all loans in most 
+
+leaflet(region_themes) %>%
+  addTiles() %>%
+  addCircles(lng= ~lon, lat = ~lat, radius= ~(amount)/10)
+setView(lng=0, lat=0, zoom=2)
+
 
 
 
